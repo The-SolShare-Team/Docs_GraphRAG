@@ -1,0 +1,104 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}",
+            "name": "Debug Docs_GraphRAG",
+            "target": "Docs_GraphRAG",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Docs_GraphRAG"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}",
+            "name": "Release Docs_GraphRAG",
+            "target": "Docs_GraphRAG",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Docs_GraphRAG"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}",
+            "name": "Debug SymbolGraphExtractor",
+            "target": "SymbolGraphExtractor",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SymbolGraphExtractor"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}",
+            "name": "Release SymbolGraphExtractor",
+            "target": "SymbolGraphExtractor",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SymbolGraphExtractor"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/Sources",
+            "name": "Debug SymbolGraphExtractor (Sources)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SymbolGraphExtractor (Sources)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/Sources",
+            "name": "Release SymbolGraphExtractor (Sources)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SymbolGraphExtractor (Sources)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/SymbolKit",
+            "name": "Debug SymbolGraphExtractor (SymbolKit)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SymbolGraphExtractor (SymbolKit)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/SymbolKit",
+            "name": "Release SymbolGraphExtractor (SymbolKit)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SymbolGraphExtractor (SymbolKit)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/SwiftSymbolKit",
+            "name": "Debug SymbolGraphExtractor (SwiftSymbolKit)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SymbolGraphExtractor (SwiftSymbolKit)"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Docs_GraphRAG}/SwiftSymbolKit",
+            "name": "Release SymbolGraphExtractor (SwiftSymbolKit)",
+            "target": "SymbolGraphExtractor",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SymbolGraphExtractor (SwiftSymbolKit)"
+        }
+    ]
+}

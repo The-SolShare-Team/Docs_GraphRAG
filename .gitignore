@@ -1,0 +1,6 @@
+**/.venv/
+**/*.env
+
+**/*.build
+
+**/Package.resolved
