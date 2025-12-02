@@ -4,3 +4,6 @@
 **/*.build
 
 **/Package.resolved
+
+**/falkordb-browser
+**/browser-ui

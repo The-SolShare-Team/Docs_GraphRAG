@@ -48,7 +48,7 @@ struct SymbolGraphExtractor {
                 let functionDetails = extractFunctionDetails(from: symbol, kind: essentialData.kind)
                 
                 // Extract type only for variables/properties
-                let type: String? = (essentialData.kind == "var") ? extractVariableType(from: essentialData.decl) : nil
+                let type: String? = (essentialData.kind.contains("Property")) ? extractVariableType(from: essentialData.decl) : nil
 
                 guard let module = unifiedSymbol.modules[primarySelector] else { continue }
                 let moduleName = unifiedGraph.moduleName
@@ -96,18 +96,19 @@ struct SymbolGraphExtractor {
             exit(1)
         }
         let ignoreList: Set<String> = [
-            "Collections.symbols.json",
-            "Collections@Swift.symbols.json",
-            "InternalCollectionsUtilities.symbols.json",
-            "InternalCollectionsUtilities@Swift.symbols.json",
-            "HeapModule.symbols.json",
-            "HashTreeCollections.symbols.json",
-            "OrderedCollections.symbols.json",
+            "_RopeModule.symbols.json",
+            "_RopeModule@Swift.symbols.json",
             "BitCollections.symbols.json",
             "BitCollections@Swift.symbols.json",
             "ByteBuffer.symbols.json",
-            "_RopeModule.symbols.json",
-            "_RopeModule@Swift.symbols.json"
+            "Collections.symbols.json",
+            "Collections@Swift.symbols.json",
+            "DequeModule.symbols.json",
+            "HashTreeCollections.symbols.json",
+            "HeapModule.symbols.json",
+            "InternalCollectionsUtilities.symbols.json",
+            "InternalCollectionsUtilities@Swift.symbols.json",
+            "OrderedCollections.symbols.json",
         ]
 
         do {
@@ -138,7 +139,7 @@ struct SymbolGraphExtractor {
     /// Extracts common, high-level data from a symbol.
     static func extractEssentialData(from symbol: SymbolGraph.Symbol) -> (name: String, kind: String, filePath: String?, docText: String, decl: String) {
         let name = symbol.names.title
-        let kind = symbol.kind.identifier.identifier
+        let kind = symbol.kind.displayName
         let filePath = symbol.absolutePath
         
         let docText = symbol.docComment?.lines
@@ -191,7 +192,7 @@ struct SymbolGraphExtractor {
     /// Extracts the type of a variable/property from its declaration string.
     static func extractVariableType(from declaration: String) -> String? {
         guard let colonRange = declaration.range(of: ": ") else { return nil }
-        return String(declaration[declaration.index(after: colonRange.upperBound)...]).trimmingCharacters(in: .whitespaces)
+        return String(declaration[declaration.index(after: colonRange.lowerBound)...]).trimmingCharacters(in: .whitespaces)
     }
     
     /// Finds the best primary selector for a unified symbol, favoring iOS.

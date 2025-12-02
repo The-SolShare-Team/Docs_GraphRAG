@@ -1,1 +1,0 @@
-swift build \ -Xswiftc -emit-symbol-graph \ -Xswiftc -emit-symbol-graph-dir \ -Xswiftc .build/symbol-graphs
