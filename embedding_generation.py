@@ -43,28 +43,32 @@ def generate_embeddings(text: str, api_key, task_type: str ="RETRIEVAL_DOCUMENT"
         return [0.0] * EMBED_DIM
     
 def create_embedding_text(symbol: Dict[str, Any]) -> str:
-    """Create a rich text representation for embedding"""
     parts = []
-    
-    # Add the declaration
-    if symbol.get('cleanDeclaration'):
-        parts.append(f"Declaration: {symbol['cleanDeclaration']}")
-    
-    # Add documentation
-    if symbol.get('cleanDocString'):
-        parts.append(f"Documentation: {symbol['cleanDocString']}")
-    
-    # Add kind and name
-    parts.append(f"Kind: {symbol.get('kind', '')}")
-    parts.append(f"Name: {symbol.get('name', '')}")
-    
-    # Add module info
-    if symbol.get('moduleName'):
+
+    if symbol.get("name"):
+        parts.append(f"Name: {symbol['name']}")
+
+    if symbol.get("kind"):
+        parts.append(f"Kind: {symbol['kind']}")
+
+    if symbol.get("moduleName"):
         parts.append(f"Module: {symbol['moduleName']}")
-    
-    # Add file path
-    if symbol.get('filePath'):
-        parts.append(f"Path: {symbol['filePath']}")
-    
+
+    if symbol.get("cleanDeclaration"):
+        parts.append(f"Declaration: {symbol['cleanDeclaration']}")
+
+    if symbol.get("functionSignature"):
+        parts.append(f"Signature: {symbol['functionSignature']}")
+
+    if symbol.get("returnType"):
+        parts.append(f"Return Type: {symbol['returnType']}")
+
+    if symbol.get("cleanGenerics"):
+        parts.append(f"Generics: {symbol['cleanGenerics']}")
+
+    if symbol.get("cleanDocString"):
+        parts.append(f"Documentation: {symbol['cleanDocString']}")
+
     return " | ".join(parts)
+
 

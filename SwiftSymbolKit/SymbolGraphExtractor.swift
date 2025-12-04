@@ -229,18 +229,19 @@ struct SymbolGraphExtractor {
         // ... (this function is already well-structured and remains the same)
         var relationships: Set<String> = []
 
-        func getFullyQualifiedName(for id: String) -> String {
-            guard let unifiedSymbol = graph.symbols[id],
-                let pathComponents = unifiedSymbol.pathComponents[selector] else {
-                return id
-            }
-            return pathComponents.joined(separator: ".")
-        }
+        // func getFullyQualifiedName(for id: String) -> String {
+        //     guard let unifiedSymbol = graph.symbols[id],
+        //         let pathComponents = unifiedSymbol.pathComponents[selector] else {
+        //         return id
+        //     }
+        //     return pathComponents.joined(separator: ".")
+        // }
 
         for (_, rels) in graph.relationshipsByLanguage {
             for rel in rels {
                 guard rel.source == symbolID else { continue }
-                let targetName = getFullyQualifiedName(for: rel.target)
+                // let targetName = getFullyQualifiedName(for: rel.target)
+                let targetName = rel.target
                 
                 let description: String
                 switch rel.kind {

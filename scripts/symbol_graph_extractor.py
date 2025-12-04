@@ -2,12 +2,13 @@ import subprocess
 from pathlib import Path
 import json
 from scripts.build_symbol_graphs import build_symbol_graphs
+import os
 
 def run_symbol_graph_extractor():
 
     build_symbol_graphs()
 
-    project_dir = Path("./SwiftSymbolKit")  # <-- change this
+    project_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../SwiftSymbolKit")  # <-- change this
 
     result = subprocess.run(
         ["swift", "run", "SymbolGraphExtractor"],

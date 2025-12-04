@@ -1,6 +1,5 @@
 import subprocess
 import shutil
-import glob
 import os
 
 
@@ -16,8 +15,8 @@ def build_symbol_graphs(project_path: str = "/Users/williamjin/Documents/solanaP
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
-
-    cmd = [
+    clean_cmd = ["swift", "package", "clean"]
+    build_cmd = [
         "swift", "build",
         "-Xswiftc", "-emit-symbol-graph",
         "-Xswiftc", "-emit-symbol-graph-dir",
@@ -25,7 +24,8 @@ def build_symbol_graphs(project_path: str = "/Users/williamjin/Documents/solanaP
     ]
 
     try:
-        subprocess.run(cmd, cwd=project_path, check=True, capture_output=True, text=True)
+        for cmd in [clean_cmd, build_cmd]:
+            subprocess.run(cmd, cwd=project_path, check=True, capture_output=True, text=True)
         print(f"Build success! JSON files are in {output_dir}")
     except subprocess.CalledProcessError as e:
         print(f"Build failed:\n{e.stderr}")
