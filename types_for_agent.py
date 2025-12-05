@@ -82,7 +82,7 @@ class SymbolSchema(BaseModel):
         extra = "forbid"
 
 class GraphSchema(BaseModel):
-    symbol_node: SymbolSchema = Field(
+    symbol_schema: SymbolSchema = Field(
         ...,
         description="Schema information for Symbol nodes, including properties and kinds."
     )
