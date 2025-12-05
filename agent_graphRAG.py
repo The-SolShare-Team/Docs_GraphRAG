@@ -646,7 +646,7 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         dependencies={"graph_name" : graph_name},
         # model=Cerebras(id="zai-glm-4.6"),
         # model=Gemini(id="gemini-2.5-flash"),
-        pre_hooks=dbTools.get_graph_schema_context
+        pre_hooks=dbTools.get_graph_schema_context,
         markdown=True,
         stream=True,
         stream_events=True,
