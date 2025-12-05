@@ -249,7 +249,7 @@ def create_symbol_relationships(graph, symbol: Dict[str, Any]):
 
 
 
-def main():
+def ingestion():
     
     if input("Rebuild Swift Project and Update Symbol Graphs based on your latest project in drive? (y/N): ").strip().lower() != "y":
         print(f"Loading symbols from {JSON_FILE_PATH}...")
@@ -266,4 +266,4 @@ def main():
     load_symbols_to_falkordb(symbols)
     
 if __name__ == "__main__":
-    main()
+    ingestion()

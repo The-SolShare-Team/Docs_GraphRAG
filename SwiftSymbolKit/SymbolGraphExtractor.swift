@@ -56,7 +56,7 @@ struct SymbolGraphExtractor {
                 let enriched = EnrichedSymbol(
                     id: id,
                     name: essentialData.name,
-                    kind: essentialData.kind,
+                    kind: essentialData.kind.lowercased(),
                     type: type,
                     filePath: essentialData.filePath,
                     moduleName: moduleName,

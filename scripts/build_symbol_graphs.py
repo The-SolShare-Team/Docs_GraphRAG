@@ -1,9 +1,13 @@
 import subprocess
 import shutil
 import os
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="../.env")
+PROJECT_PATH = os.environ.get("PROJECT_PATH", "/Users/williamjin/Documents/solanaProj/SolanaWalletAdapterKit")
 
 
-def build_symbol_graphs(project_path: str = "/Users/williamjin/Documents/solanaProj/SolanaWalletAdapterKit", output_dir: str = None):
+def build_symbol_graphs(project_path: str = PROJECT_PATH, output_dir: str = None):
     """
     Runs the swift build command and outputs symbol graphs to a specific directory.
     """

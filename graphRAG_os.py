@@ -9,7 +9,7 @@ load_dotenv()
 agent_os = AgentOS(
     id="graph_rag_os",
     description="Agent OS interface for writing documentation leveraging graphRAG",
-    agents=[create_graphrag_agent()]
+    agents=[create_graphrag_agent(debug_level=2, debug_mode=False, model="llama-3.3-70b")]
 
 )
 
@@ -18,4 +18,4 @@ app = agent_os.get_app()
 
 if __name__ == "__main__":
     # Default port is 7777; change with port=...
-    agent_os.serve(app="agno_agent_os:app", reload=True)
+    agent_os.serve(app="graphRAG_os:app", reload=True)
