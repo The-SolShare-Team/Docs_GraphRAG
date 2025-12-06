@@ -3,10 +3,15 @@ import os
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 
 load_dotenv()
-
+@retry(
+    stop=stop_after_attempt(10),  # Give up after 5 failed attempts for a single item
+    wait=wait_exponential(multiplier=1, min=1, max=10), # Wait 1s, then 2s, 4s, etc.
+    retry=retry_if_exception_type(Exception) # Or a more specific exception from your API client
+)
 def generate_embeddings(text: str, api_key, task_type: str ="RETRIEVAL_DOCUMENT") -> List[float]:
     """
     Calls Google Gemini to generate a vector for the Golden Chunk.
@@ -32,7 +37,6 @@ def generate_embeddings(text: str, api_key, task_type: str ="RETRIEVAL_DOCUMENT"
             contents=[text],
             config=types.EmbedContentConfig(
                 task_type=task_type, # Critical for storage / query
-                title="Swift Symbol"            # Optional metadata for the model
             )
         )
         return response.embeddings[0].values

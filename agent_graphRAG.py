@@ -139,7 +139,7 @@ class FalkorDBTools(Toolkit):
         return wrapper
 
     #pre-hook
-    def get_graph_schema_context(self, graph_name: Optional[str]) -> GraphSchema:
+    def get_graph_schema_context(self, graph_name: Optional[str] = None) -> GraphSchema:
         """
         Fetches the database schema/ontology in a structured format for AI agent context.
         Returns kinds of symbols and relationship types as those are special properties.
@@ -223,7 +223,7 @@ class FalkorDBTools(Toolkit):
 
         Args:
             query (str): The search query describing what to find.
-            top_k (int): Number of results to return. Default is 20.
+            top_k (int): Number of results to return. Default is 20. Should always be above 10.
 
         Returns:
             List[VectorSearchResult]: A list of dictionaries containing the structured Symbol
@@ -234,7 +234,7 @@ class FalkorDBTools(Toolkit):
         query_embedding = generate_embeddings(
             query,
             api_key=f"GEMINI_API_KEY_{randint(1, self.NUM_KEYS)}",
-            task_type="RETRIEVAL_DOCUMENT"
+            task_type="RETRIEVAL_QUERY"
         )
 
         if not query_embedding:
@@ -645,7 +645,7 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         model=Cerebras(id=model,
             retries=5,
             delay_between_retries=1,
-            exponential_backoff=False
+            exponential_backoff=True,
         ),
         # dependencies={"graph_name" : graph_name},
         # model=Cerebras(id="zai-glm-4.6"),
@@ -658,7 +658,8 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         debug_level=debug_level,
         db=SqliteDb(db_file="db/graph_rag_agent.db"),
         add_history_to_context=True,
-        num_history_runs=3,
+        num_history_runs=2,
+        read_chat_history=True,
         # num_history_sessions=2 # prev sessions
     )
     

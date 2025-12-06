@@ -1,4 +1,5 @@
 import queue
+import time
 from falkordb import FalkorDB
 from embedding_generation import create_embedding_text, generate_embeddings
 from scripts.symbol_graph_extractor import run_symbol_graph_extractor
@@ -18,7 +19,7 @@ JSON_FILE_PATH = "./enriched_symbols.json"
 GRAPH_NAME = os.environ.get("GRAPH_NAME", "solana_knowledge_graph")
 
 NUM_KEYS = int(os.environ.get("NUM_GEMINI", 1))
-CONCURRENT_WORKERS = max(50, NUM_KEYS)
+CONCURRENT_WORKERS = max(45, NUM_KEYS)
 
 def escape_string(s: str) -> str:
     """Escape strings for Cypher queries"""
@@ -117,9 +118,9 @@ def ingest_single_symbol(graph, symbol: Dict[str, Any], api_key: str):
     print("  - Getting embedding from Gemini...")
     embedding = generate_embeddings(embed_text, api_key=api_key)
 
-    if embedding is None:
-        print("Skipping symbol due to embedding error")
-        return False
+    # if embedding is None:
+    #     print("Skipping symbol due to embedding error")
+    #     return False
 
     if not create_symbol_node(graph, symbol, embedding):
         print("Creation of node failed")
@@ -128,7 +129,7 @@ def ingest_single_symbol(graph, symbol: Dict[str, Any], api_key: str):
     create_module_relationship(graph, symbol)
     create_symbol_relationships(graph, symbol)
 
-    # time.sleep(0.6)
+    time.sleep(1)
     return True
 
 #helpers
