@@ -642,11 +642,15 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         tools=[
             dbTools,
         ],
-        model=Cerebras(id=model),
-        dependencies={"graph_name" : graph_name},
+        model=Cerebras(id=model,
+            retries=5,
+            delay_between_retries=1,
+            exponential_backoff=False
+        ),
+        # dependencies={"graph_name" : graph_name},
         # model=Cerebras(id="zai-glm-4.6"),
         # model=Gemini(id="gemini-2.5-flash"),
-        pre_hooks=dbTools.get_graph_schema_context,
+        pre_hooks=[dbTools.get_graph_schema_context],
         markdown=True,
         stream=True,
         stream_events=True,
@@ -655,6 +659,7 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         db=SqliteDb(db_file="db/graph_rag_agent.db"),
         add_history_to_context=True,
         num_history_runs=3,
+        # num_history_sessions=2 # prev sessions
     )
     
     return agent
@@ -668,7 +673,7 @@ if __name__ == "__main__":
     print("Powered by Agno + Cerebras + FalkorDB")
     print("=" * 60)
 
-    agent = create_graphrag_agent()
+    agent = create_graphrag_agent(debug_level=2, debug_mode=True)
 
     try:
         agent.cli_app(
