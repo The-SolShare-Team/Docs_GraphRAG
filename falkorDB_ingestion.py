@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 from types_for_agent import RelationshipType, ParsedRelationship
 
-load_dotenv()
+load_dotenv(override=True)
 FALKOR_HOST = os.environ.get("FALKORDB_HOST", "localhost")
 FALKOR_PORT = os.environ.get("FALKORDB_PORT", 6379)
 JSON_FILE_PATH = "./enriched_symbols.json"

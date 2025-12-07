@@ -1,15 +1,14 @@
 from agno.os.app import AgentOS
 from agent_graphRAG import create_graphrag_agent
 from dotenv import load_dotenv
+import os
 
-
-load_dotenv()
-
+load_dotenv(override=True)
 
 agent_os = AgentOS(
     id="graph_rag_os",
     description="Agent OS interface for writing documentation leveraging graphRAG",
-    agents=[create_graphrag_agent(debug_level=2, debug_mode=True, model="qwen-3-235b-a22b-instruct-2507")],
+    agents=[create_graphrag_agent(debug_level=2, debug_mode=False, model="qwen-3-235b-a22b-instruct-2507")],
     # run_hooks_in_background=True,
 )
 

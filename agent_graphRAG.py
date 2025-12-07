@@ -2,23 +2,24 @@
 Swift Symbol GraphRAG Agent
 Uses Agno with Cerebras + FalkorDB for hybrid vector + graph search
 """
-import time
 from falkordb import FalkorDB
 from embedding_generation import generate_embeddings
 import os
 from typing import List, Dict, Any, Optional, Union, get_args
 from functools import wraps
+import cohere
+from dotenv import load_dotenv
 
 from agno.agent import Agent
 from agno.models.cerebras import Cerebras
-from agno.models.google import Gemini
 from agno.tools import Toolkit
-from agno.utils.pprint import pprint_run_response
 from agno.db.sqlite import SqliteDb
 from random import randint
 
 from types_for_agent import *
 from falkorDB_ingestion import ingestion
+
+load_dotenv(override=True)
 
 # Configuration
 FALKOR_HOST = os.environ.get("FALKORDB_HOST", "localhost")
@@ -95,6 +96,8 @@ class FalkorDBTools(Toolkit):
         self.db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT)
         self.graph = self.db.select_graph(graph_name)
         self.schema = self.get_graph_schema_context(graph_name)
+
+
         # print(self.schema.model_dump_json(indent=4))
         print(f"✓ Connected to FalkorDB graph: {graph_name}")
         
@@ -216,20 +219,35 @@ class FalkorDBTools(Toolkit):
         """
         ingestion()
 
-    def vector_search(self, query: str, top_k: int = 20) -> List[VectorSearchResult]:
+    def vector_search(self, 
+        query: str, 
+        top_k: int = 10,
+        rerank: bool = True,
+        initial_retrieval_multiplier: Optional[int] = 3) -> List[VectorSearchResult]:
         """
         Search for similar Swift symbols using semantic similarity. 
         Never all unless the user explicitly says they want to populate the graph.
 
         Args:
             query (str): The search query describing what to find.
-            top_k (int): Number of results to return. Default is 20. Should always be above 10.
+            top_k (int): Number of results to return. Default is 10.
+            rerank (bool): Whether to apply reranking (default True)
+            initial_retrieval_multiplier (Optional[int]): How many candidates to retrieve 
+                before reranking (default 3x final results)
 
         Returns:
             List[VectorSearchResult]: A list of dictionaries containing the structured Symbol
                 and its similarity score, e.g.,
                 [{"symbol": Symbol(...), "score": 0.93}, ...]
         """
+        
+        # Determine retrieval size
+        if rerank:
+            retrieve_k = (top_k * initial_retrieval_multiplier)
+        else:
+            retrieve_k = top_k
+        
+
         # Generate embedding
         query_embedding = generate_embeddings(
             query,
@@ -241,7 +259,7 @@ class FalkorDBTools(Toolkit):
             return []
 
         # Vector similarity search
-        params = {"embedding": query_embedding, "top_k": top_k}
+        params = {"embedding": query_embedding, "top_k": retrieve_k}
         cypher_query = """
         CALL db.idx.vector.queryNodes('Symbol', 'embedding', $top_k, vecf32($embedding))
         YIELD node, score
@@ -275,9 +293,83 @@ class FalkorDBTools(Toolkit):
                 returnType=returnType,
             )
             symbols_with_scores.append({"symbol": symbol, "score": score})
-            
+        
+        if rerank and len(symbols_with_scores) > 0:
+            symbols_with_scores = self._rerank_results(
+                query, symbols_with_scores, top_k
+            )
+        else:
+            symbols_with_scores = symbols_with_scores[:top_k]
         return symbols_with_scores
     
+    def _rerank_results(self, query: str, results: List[dict], top_k: int, ) -> List[dict]:
+        """
+        Rerank results using Cohere's reranker.
+        
+        Args:
+            query: Original search query
+            results: List of {symbol, score, initial_rank} dicts
+            top_k: Number of final results to return
+            
+        Returns:
+            Reranked list of results with updated scores
+        """
+        cohere_api_key = os.getenv("COHERE_API_KEY")
+        try:
+            if not cohere_api_key:
+                raise ValueError("Missing Cohere API key")
+            co = cohere.Client(cohere_api_key)
+        except Exception as e:
+            print(f"Failed to initialize Cohere: {e}. Skipping reranking.")
+            return results[:top_k]
+        
+        documents = []
+        for result in results:
+            symbol = result["symbol"]
+
+            doc_parts = [
+                f"Name: {symbol.name}",
+                f"Kind: {symbol.kind}",
+                f"Module: {symbol.moduleName}",
+            ]
+            
+            if symbol.type:
+                doc_parts.append(f"Type: {symbol.type}")
+            
+            if symbol.declaration:
+                doc_parts.append(f"Declaration: {symbol.declaration}")
+            
+            if symbol.functionSignature:
+                doc_parts.append(f"Signature: {symbol.functionSignature}")
+            
+            if symbol.documentation:
+                # Truncate very long docs for reranking
+                doc = symbol.documentation[:500]
+                doc_parts.append(f"Documentation: {doc}")
+            
+            documents.append("\n".join(doc_parts))
+
+        try:
+            rerank_response = co.rerank(
+                query=query,
+                documents=documents,
+                top_n=top_k,
+                model="rerank-v3.5",  # "rerank-english-v3.0"
+            )
+
+            reranked_results = []
+            for rank_result in rerank_response.results:
+                original_idx = rank_result.index
+                reranked_results.append({
+                    "symbol": results[original_idx]["symbol"],
+                    "score": rank_result.relevance_score  # Replace with reranker score
+                })
+
+            return reranked_results
+        except Exception as e:
+            print(f" Reranking failed: {e}. Returning original results.")
+            return results[:top_k]
+
     def parse_json_string(self, json_str: str) -> dict | None:
         """
         Parse a JSON string that may be wrapped in markdown code blocks.
@@ -646,6 +738,7 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
             retries=5,
             delay_between_retries=1,
             exponential_backoff=True,
+            api_key=os.environ.get("CEREBRAS_API_KEY")
         ),
         # dependencies={"graph_name" : graph_name},
         # model=Cerebras(id="zai-glm-4.6"),
