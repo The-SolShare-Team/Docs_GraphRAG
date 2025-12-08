@@ -41,10 +41,10 @@ def generate_embeddings(text: str, api_key, task_type: str ="RETRIEVAL_DOCUMENT"
         )
         return response.embeddings[0].values
     except Exception as e:
-        print(f"Embedding failed: {e}")
+        print(f"Embedding failed: {e}, retrying")
         # Return zero vector so the graph write doesn't fail, 
         # but log it so you can retry later.
-        return [0.0] * EMBED_DIM
+        raise
     
 def create_embedding_text(symbol: Dict[str, Any]) -> str:
     parts = []

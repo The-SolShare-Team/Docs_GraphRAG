@@ -23,7 +23,9 @@ load_dotenv(override=True)
 
 # Configuration
 FALKOR_HOST = os.environ.get("FALKORDB_HOST", "localhost")
-FALKOR_PORT = os.environ.get("FALKORDB_PORT", 6379)
+FALKOR_PORT = int(os.environ.get("FALKORDB_PORT", 6379))
+FALKOR_USER = os.environ.get("FALKORDB_USERNAME", "")
+FALKOR_PASSWORD = os.environ.get("FALKORDB_PASSWORD", "")
 GRAPH_NAME = os.environ.get("GRAPH_NAME", "solana_knowledge_graph")
 NUM_KEYS = os.environ.get("NUM_KEYS", 1)
 
@@ -93,7 +95,7 @@ class FalkorDBTools(Toolkit):
     def __init__(self, graph_name = GRAPH_NAME, NUM_KEYS : str = NUM_KEYS, **kwargs):
         self.graph_name = graph_name
         self.NUM_KEYS = int(NUM_KEYS)
-        self.db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT)
+        self.db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT, username=FALKOR_USER, password=FALKOR_PASSWORD)
         self.graph = self.db.select_graph(graph_name)
         self.schema = self.get_graph_schema_context(graph_name)
 
@@ -734,10 +736,13 @@ def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_lev
         tools=[
             dbTools,
         ],
+        retries= 5,
+        delay_between_retries=1,
+        exponential_backoff=True,
         model=Cerebras(id=model,
-            retries=5,
-            delay_between_retries=1,
-            exponential_backoff=True,
+            # retries=5,
+            # delay_between_retries=1,
+            # exponential_backoff=True,
             api_key=os.environ.get("CEREBRAS_API_KEY")
         ),
         # dependencies={"graph_name" : graph_name},

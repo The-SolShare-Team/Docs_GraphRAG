@@ -14,7 +14,9 @@ from types_for_agent import RelationshipType, ParsedRelationship
 
 load_dotenv(override=True)
 FALKOR_HOST = os.environ.get("FALKORDB_HOST", "localhost")
-FALKOR_PORT = os.environ.get("FALKORDB_PORT", 6379)
+FALKOR_PORT = int(os.environ.get("FALKORDB_PORT", 6379))
+FALKOR_USER = os.environ.get("FALKORDB_USERNAME", "")
+FALKOR_PASSWORD = os.environ.get("FALKORDB_PASSWORD", "")
 JSON_FILE_PATH = "./enriched_symbols.json"
 GRAPH_NAME = os.environ.get("GRAPH_NAME", "solana_knowledge_graph")
 
@@ -64,7 +66,7 @@ def load_symbols_to_falkordb(symbols: List[Dict[str, Any]], offset = 0):
     """Load symbols with embeddings into FalkorDB"""
     
     # Connect to FalkorDB
-    db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT)
+    db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT, username=FALKOR_USER, password=FALKOR_PASSWORD)
     graph = db.select_graph(GRAPH_NAME)
     
     print(f"Connected to FalkorDB at {FALKOR_HOST}:{FALKOR_PORT}")
