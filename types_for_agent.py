@@ -64,6 +64,7 @@ class Symbol(BaseModel):
     functionSignature: Optional[str] = Field(None, description="The function or method signature, if the symbol is callable.")
     parameterNames: Optional[List[str]] = Field(None, description="List of parameter names for functions or methods.")
     returnType: Optional[str] = Field(None, description="The return type for functions or methods, if applicable.")
+    absolutePath: Optional[str] = Field(None, description="The absolute path where the symbol is defined. More specific than the filePath")
     embedding: Optional[List[float]] = Field(None, description="The semantic vector embedding of the symbol used for similarity search.")
 
     class Config:

@@ -81,11 +81,9 @@ Once you have a symbol, explore its connections:
 - Combine multiple tool calls to build comprehensive answers
 
 # Response Style
-Be concise but thorough. Provide:
-- Specific symbol names and their locations (file paths)
-- Code declarations when relevant
-- Relationship context (what inherits/implements/references what)
-- Practical examples drawn from the actual codebase
+- **Cite Files**: Always mention the `absolutePath` or `moduleName` when discussing a symbol.
+- **Show Code**: Use the `declaration` property to show the exact signature of functions you find.
+- **Be Honest**: If the graph returns no results, state "I could not find that symbol in the graph." Do not hallucinate code.
 """
 
 
@@ -113,6 +111,7 @@ class FalkorDBTools(Toolkit):
         ]
         # instructions="" #to add
         super().__init__(name="falkordb_tools", tools=tools, **kwargs) #instructions=instructions
+
     #inject SymbolKind and RelationshipType information
     @staticmethod
     def inject_schema_info(func):
@@ -215,17 +214,14 @@ class FalkorDBTools(Toolkit):
         return f" Successfully cleared graph '{target_graph}'. All nodes and relationships have been deleted."
     
     def populate_graph(self):
-        """
-        Repopulates the graph using a prebuilt script.
-        
-        """
+        """Repopulates the graph using the ingestion script."""
         ingestion()
 
     def vector_search(self, 
         query: str, 
         top_k: int = 10,
         rerank: bool = True,
-        initial_retrieval_multiplier: Optional[int] = 3) -> List[VectorSearchResult]:
+        initial_retrieval_multiplier: int = 3) -> List[VectorSearchResult]:
         """
         Search for similar Swift symbols using semantic similarity. 
         Never all unless the user explicitly says they want to populate the graph.
@@ -234,7 +230,7 @@ class FalkorDBTools(Toolkit):
             query (str): The search query describing what to find.
             top_k (int): Number of results to return. Default is 10.
             rerank (bool): Whether to apply reranking (default True)
-            initial_retrieval_multiplier (Optional[int]): How many candidates to retrieve 
+            initial_retrieval_multiplier (int): How many candidates to retrieve 
                 before reranking (default 3x final results)
 
         Returns:
@@ -265,9 +261,10 @@ class FalkorDBTools(Toolkit):
         cypher_query = """
         CALL db.idx.vector.queryNodes('Symbol', 'embedding', $top_k, vecf32($embedding))
         YIELD node, score
-        RETURN node.id, node.name, node.kind, node.type, node.declaration, node.documentation,
-               node.filePath, node.moduleName, node.cleanGenerics, node.functionSignature,
-               node.parameterNames, node.returnType, score
+        RETURN node.id, node.name, node.kind, node.type, node.filePath, 
+               node.declaration, node.documentation,
+               node.moduleName, node.cleanGenerics, node.functionSignature,
+               node.parameterNames, node.returnType, node.absolutePath, score
         ORDER BY score DESC
         """
 
@@ -275,24 +272,25 @@ class FalkorDBTools(Toolkit):
         symbols_with_scores: List[Dict[str, object]] = []
         for record in results.result_set:
             (
-                node_id, name, kind, type, declaration, documentation,
-                filePath, moduleName, cleanGenerics, functionSignature,
-                parameterNames, returnType, score
+                node_id, name, kind, type_, filePath, declaration, documentation,
+                moduleName, cleanGenerics, functionSignature,
+                parameterNames, returnType, absolutePath, score
             ) = record
 
             symbol = Symbol(
-                # id=node_id,
+                id=node_id,
                 name=name,
                 kind=kind,
-                type=type,  
+                type=type_,  
                 filePath=filePath,
-                moduleName=moduleName,
-                documentation=documentation,
                 declaration=declaration,
+                documentation=documentation,
+                moduleName=moduleName,
                 # cleanGenerics=cleanGenerics,
                 functionSignature=functionSignature,
                 parameterNames=parameterNames,
                 returnType=returnType,
+                absolutePath=absolutePath
             )
             symbols_with_scores.append({"symbol": symbol, "score": score})
         
@@ -334,21 +332,12 @@ class FalkorDBTools(Toolkit):
                 f"Kind: {symbol.kind}",
                 f"Module: {symbol.moduleName}",
             ]
-            
-            if symbol.type:
-                doc_parts.append(f"Type: {symbol.type}")
-            
-            if symbol.declaration:
-                doc_parts.append(f"Declaration: {symbol.declaration}")
-            
-            if symbol.functionSignature:
-                doc_parts.append(f"Signature: {symbol.functionSignature}")
-            
+            if symbol.type: doc_parts.append(f"Type: {symbol.type}")
+            if symbol.declaration: doc_parts.append(f"Declaration: {symbol.declaration}")
+            if symbol.functionSignature: doc_parts.append(f"Signature: {symbol.functionSignature}")
             if symbol.documentation:
-                # Truncate very long docs for reranking
                 doc = symbol.documentation[:500]
                 doc_parts.append(f"Documentation: {doc}")
-            
             documents.append("\n".join(doc_parts))
 
         try:
@@ -392,10 +381,8 @@ class FalkorDBTools(Toolkit):
             if cleaned.endswith("```"):
                 cleaned = cleaned.rsplit("```", 1)[0]
             cleaned = cleaned.strip()
-            
             # Parse the JSON
             parsed = json.loads(cleaned)
-            
             # Validate it's a dictionary
             if not isinstance(parsed, dict):
                 print(f"❌ Error: JSON must be an object (dictionary). Got: {type(parsed).__name__}")
@@ -420,7 +407,7 @@ class FalkorDBTools(Toolkit):
         # Properties that should use case-insensitive partial match
         case_insensitive_props = {"kind", "documentation", "declaration", "name","moduleName"}
         # Properties that should use case-sensitive partial match (default)
-        case_sensitive_props = {"type", "filePath", "returnType", 
+        case_sensitive_props = {"type", "filePath", "absolutePath", "returnType", 
                             "functionSignature", "cleanGenerics"}
         # Array property
         array_props = {"parameterNames"}
@@ -543,7 +530,7 @@ class FalkorDBTools(Toolkit):
         WHERE {where_statement}
         RETURN s.id, s.name, s.kind, s.type, s.declaration, s.documentation,
             s.filePath, s.moduleName, s.cleanGenerics, s.functionSignature,
-            s.parameterNames, s.returnType
+            s.parameterNames, s.absolutePath, s.returnType
         LIMIT $limit
         """
         # Execute query
@@ -563,7 +550,7 @@ class FalkorDBTools(Toolkit):
             (
                 node_id, name, kind, type, declaration, documentation,
                 filePath, moduleName, cleanGenerics, functionSignature,
-                parameterNames, returnType,
+                parameterNames, absolutePath, returnType,
             ) = record
             
             symbol = Symbol(
@@ -579,6 +566,7 @@ class FalkorDBTools(Toolkit):
                 functionSignature=functionSignature,
                 parameterNames=parameterNames,
                 returnType=returnType,
+                absolutePath=absolutePath
             )
             symbols.append(symbol)
         return symbols
@@ -678,7 +666,7 @@ RETURN DISTINCT
     connected.id, connected.name, connected.kind, connected.type, 
     connected.declaration, connected.documentation,
     connected.filePath, connected.moduleName, connected.cleanGenerics, 
-    connected.functionSignature, connected.parameterNames, connected.returnType, 
+    connected.functionSignature, connected.parameterNames, connected.returnType, connected.absolutePath,
     relationship_types,
     relationship_directions,
     depth
@@ -700,7 +688,7 @@ LIMIT $limit
             (
                 node_id, name, kind, type_, declaration, documentation,
                 filePath, moduleName, cleanGenerics, functionSignature,
-                parameterNames, returnType, relationship_types, relationship_directions, depth_val
+                parameterNames, returnType, absolutePath, relationship_types, relationship_directions, depth_val
             ) = record
             
             symbol = Symbol(
@@ -708,6 +696,7 @@ LIMIT $limit
                 kind=kind, type=type_, filePath=filePath, moduleName=moduleName,
                 documentation=documentation, declaration=declaration, cleanGenerics=cleanGenerics,
                 functionSignature=functionSignature, parameterNames=parameterNames, returnType=returnType,
+                absolutePath=absolutePath
                 # embedding=embedding if embedding else []
             )
             
@@ -727,7 +716,7 @@ LIMIT $limit
 def create_graphrag_agent(graph_name = GRAPH_NAME, debug_mode = False, debug_level = 2, model="qwen-3-235b-a22b-instruct-2507"):
     """Create Agno agent with FalkorDB tools"""  
     # Create agent with Cerebras model
-    dbTools = FalkorDBTools()
+    dbTools = FalkorDBTools(graph_name=graph_name)
     agent = Agent(
         name="Solana Swift SDK Expert",
         id="graph_rag_agent",

@@ -1,0 +1,112 @@
+[
+    {
+        "category": "Vector Search",
+        "name": "Concept Search",
+        "prompt": "Do a vector search to find any code related to 'signing transactions' or 'keypair generation'. I want to see the top 5 most relevant symbols."
+    },
+    {
+        "category": "Vector Search",
+        "name": "Natural Language Query",
+        "prompt": "Use vector search to look for the implementation of 'retrying RPC requests' in the codebase."
+    },
+    {
+        "category": "Query Symbols",
+        "name": "Simple Filter (Struct Name)",
+        "prompt": "Query the database for all symbols where the `kind` is 'struct' and the `name` contains 'Transaction'. List the names and file paths you find."
+    },
+    {
+        "category": "Query Symbols",
+        "name": "Complex Filter (Module + Kind)",
+        "prompt": "Find all symbols in the 'SolanaRPC' module that are of kind 'function' or 'method'. Use the query_symbols tool with the appropriate filters."
+    },
+    {
+        "category": "Query Symbols",
+        "name": "Array Property Filter (Parameter Names)",
+        "prompt": "Find any function where the parameter names include 'commitment'. Use the `parameterNames_any` filter in your query."
+    },
+    {
+        "category": "Graph Traverse",
+        "name": "Outgoing References (Dependencies)",
+        "prompt": "First, find the 'Transaction' struct. Then, traverse outgoing 'REFERENCES' relationships from it to see what other types or functions it depends on. Show me the immediate dependencies (depth 1)."
+    },
+    {
+        "category": "Graph Traverse",
+        "name": "Incoming Membership (Members)",
+        "prompt": "Find the 'SolanaRPC' class/struct. Then, traverse incoming 'MEMBER_OF' relationships to list all methods and properties defined inside it."
+    },
+    {
+        "category": "Graph Traverse",
+        "name": "Inheritance Check",
+        "prompt": "Find the 'Account' struct. Traverse outgoing relationships to check if it 'CONFORMS_TO' any protocols or 'INHERITS_FROM' any classes."
+    },
+    {
+        "category": "Multi-Step GraphRAG",
+        "name": "Workflow: Find -> Traverse -> Explain",
+        "prompt": "I want to understand how the `sendTransaction` method works.\n1. Find the method using vector search or symbol query.\n2. Once found, traverse its relationships to see what it references.\n3. Based on those references, explain the step-by-step flow of sending a transaction."
+    },
+    {
+        "category": "Property Coverage",
+        "name": "ID (Exact Match)",
+        "prompt": "Query symbols to find the exact node with the ID `s:10SolanaRPC7RequestV`. I need to verify its existence."
+    },
+    {
+        "category": "Property Coverage",
+        "name": "File Path (Partial Match)",
+        "prompt": "Find all symbols where the `filePath` contains `Sources/SolanaRPC/methods`. I want to see everything in that folder."
+    },
+    {
+        "category": "Property Coverage",
+        "name": "Module Name",
+        "prompt": "List all symbols where `moduleName` is exactly 'SolanaWalletAdapterKit'. Use the query_symbols tool."
+    },
+    {
+        "category": "Property Coverage",
+        "name": "Declaration (Code Search)",
+        "prompt": "Search for any symbol where the `declaration` contains `public func sign(`. I want to find signing functions based on their raw code signature."
+    },
+    {
+        "category": "Type System",
+        "name": "Type Annotation",
+        "prompt": "Find all properties or variables where the `type` contains `TransactionInstruction`. I want to see where instructions are stored."
+    },
+    {
+        "category": "Type System",
+        "name": "Return Type",
+        "prompt": "Find all functions that have a `returnType` containing `Result<String, Error>`. I'm looking for functions that return results."
+    },
+    {
+        "category": "Type System",
+        "name": "Generics",
+        "prompt": "Query for symbols where `cleanGenerics` contains `where T: Encodable`. I need to find generic constraints involving Encodable."
+    },
+    {
+        "category": "Type System",
+        "name": "Function Signature",
+        "prompt": "Find functions where the `functionSignature` contains `(commitment: Commitment)`. I want methods that accept a commitment parameter."
+    },
+    {
+        "category": "Operator Logic",
+        "name": "_in (OR Condition)",
+        "prompt": "Use query_symbols to find all symbols where `kind_in` is either `['class', 'actor']`. I want to see the high-level reference types."
+    },
+    {
+        "category": "Operator Logic",
+        "name": "_contains (Explicit Partial)",
+        "prompt": "Find symbols where `name_contains` 'Serialize'. Ensure you use the `_contains` operator to be safe."
+    },
+    {
+        "category": "Operator Logic",
+        "name": "_any (Array Match)",
+        "prompt": "Find all functions where `parameterNames_any` matches 'config'. I want to find any function that takes a configuration parameter."
+    },
+    {
+        "category": "Metadata",
+        "name": "Documentation Content",
+        "prompt": "Find symbols where `documentation` contains 'Signs the transaction using the keypair'. I am looking for symbols documented with that specific phrase."
+    },
+    {
+        "category": "Stress Test",
+        "name": "Complex Multi-Filter",
+        "prompt": "Find all **public** methods in the **SolanaRPC** module that return a **Promise** or **Result**.\n*Hint: Construct a query_symbols call filtering for `moduleName: 'SolanaRPC'`, `kind: 'method'`, `declaration_contains: 'public'`, and `returnType_contains: 'Result'`.*"
+    }
+]
