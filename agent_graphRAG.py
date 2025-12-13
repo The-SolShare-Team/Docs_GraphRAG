@@ -345,7 +345,7 @@ class FalkorDBTools(Toolkit):
                 query=query,
                 documents=documents,
                 top_n=top_k,
-                model="rerank-v3.5",  # "rerank-english-v3.0"
+                model="rerank-v4.0-pro",  # "rerank-v3.5"
             )
 
             reranked_results = []
